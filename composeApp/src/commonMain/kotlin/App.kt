@@ -1,9 +1,7 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,17 +9,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProgressIndicatorDefaults
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -43,137 +39,115 @@ fun App() {
 
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.primarySurface
         ) {
-            Spacer(Modifier.size(12.dp))
-
-            Messages(
-                listOf(
-                    Message("Sairaj", "PhonePe"),
-                    Message("Sairaj2", "PhonePe"),
-                    Message("Sairaj3", "PhonePe"),
-                    Message("Sairaj4", "PhonePe"),
-                )
-            )
+            BillerScreen()
         }
-
-//        var showContent by remember { mutableStateOf(false) }
-//        Spacer(Modifier.fillMaxWidth())
-//        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-//            Button(onClick = { showContent = !showContent }) {
-//                Text("Click this!")
-//            }
-//            AnimatedVisibility(showContent) {
-//                val greeting = remember { Greeting().greet() }
-//                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-//                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-//                    Text("Compose: $greeting")
-//                }
-//            }
-//        }
 
     }
 }
 
-data class Message(val author: String, val body: String)
+@Composable
+fun BillerScreen(
+    viewModel: BillerViewModel = androidx.lifecycle.viewmodel.compose.viewModel { BillerViewModel() }
+) {
+    val uiState = viewModel.billerScreenUiState.collectAsState()
+
+    when (uiState.value) {
+        is BillerScreenUiState.Loading -> {
+            CircularProgressIndicator(
+                modifier = Modifier.width(8.dp)
+            )
+        }
+
+        is BillerScreenUiState.Loaded -> {
+            Billers(
+                (uiState.value as BillerScreenUiState.Loaded).billers
+            )
+        }
+    }
+}
+
+data class Biller(
+    val name: String
+)
 
 @Composable
-fun MessageCard(
-    msg: Message,
-    viewModel: MessageViewModel = androidx.lifecycle.viewmodel.compose.viewModel { MessageViewModel() }
+fun BillerItem(
+    biller: Biller,
+    shouldShowDivider: Boolean = true
 ) {
     Row(
         modifier = Modifier
             .padding(all = 8.dp)
             .then(
-                Modifier.background(MaterialTheme.colors.secondaryVariant)
-            )
-            .then(
                 Modifier.fillMaxWidth()
             ),
         horizontalArrangement = Arrangement.Start
     ) {
-        val count = remember { mutableStateOf(0) }
-        val uiState = viewModel.messageUiState.collectAsState()
 
-        if (uiState.value == MessageUiState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(32.dp),
-                color = MaterialTheme.colors.primaryVariant,
+        Image(
+            painter = painterResource(Res.drawable.compose_multiplatform),
+            contentDescription = "Biller Img",
+            modifier = Modifier
+                .size(48.dp)
+        )
+
+        Text(
+            modifier = Modifier.align(Alignment.CenterVertically)
+                .then(Modifier.padding(start = 8.dp)),
+            text = biller.name,
+            color = MaterialTheme.colors.primary
+        )
+
+        if (shouldShowDivider) {
+            Divider(
+                modifier = Modifier.fillMaxWidth()
             )
-        } else {
-            Image(
-                painter = painterResource(Res.drawable.compose_multiplatform),
-                contentDescription = "Contact profile picture",
-                modifier = Modifier
-                    .size(48.dp)
-            )
-
-            Column(
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "${msg.author} drank ${count.value} times",
-                    color = MaterialTheme.colors.primary
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                if (count.value > 0) {
-                    Text(
-                        text = msg.body,
-                        color = MaterialTheme.colors.secondary
-                    )
-                }
-            }
-
-            Button(
-                onClick = {
-                    count.value++
-                },
-                modifier = Modifier.padding(start = 24.dp)
-            ) {
-                Text(
-                    text = "Drink",
-                )
-            }
         }
-
 
     }
 
 }
 
 @Composable
-fun Messages(
-    messages: List<Message>
+fun Billers(
+    billers: List<Biller>
 ) {
-    LazyColumn(
-//        horizontalAlignment = Alignment.CenterHorizontally
+    Card(
+        backgroundColor = MaterialTheme.colors.surface,
     ) {
-        items(
-            items = messages,
-            itemContent = { message ->
-                MessageCard(message)
-            }
-        )
+        LazyColumn {
+            items(
+                items = billers,
+                itemContent = { biller ->
+                    BillerItem(biller)
+                }
+            )
+        }
     }
 }
 
-sealed class MessageUiState {
-    data object Loading : MessageUiState()
-    data object Loaded : MessageUiState()
+sealed class BillerScreenUiState {
+
+    data object Loading : BillerScreenUiState()
+
+    data class Loaded(
+        val billers: List<Biller>
+    ) : BillerScreenUiState()
+
 }
 
-class MessageViewModel : ViewModel() {
+class BillerViewModel : ViewModel() {
 
-    private val _messageUiState = MutableStateFlow<MessageUiState>(MessageUiState.Loading)
-    val messageUiState: StateFlow<MessageUiState> = _messageUiState
+    private val _billerScreenUiState =
+        MutableStateFlow<BillerScreenUiState>(BillerScreenUiState.Loading)
+    val billerScreenUiState: StateFlow<BillerScreenUiState> = _billerScreenUiState
 
     init {
         viewModelScope.launch {
             delay(2000)
-            _messageUiState.value = MessageUiState.Loaded
+            val billers: List<Biller> = List(size = 100) { biller -> Biller("MSEDEC Mahavitaran")}
+            _billerScreenUiState.value = BillerScreenUiState.Loaded(billers)
         }
     }
 
