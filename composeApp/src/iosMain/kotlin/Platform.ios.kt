@@ -1,3 +1,4 @@
+
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import data.AppDatabase
@@ -5,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import platform.Foundation.NSHomeDirectory
 import platform.UIKit.UIDevice
+import data.instantiateImpl
 
 class IOSPlatform : Platform {
 
@@ -20,6 +22,7 @@ class IOSPlatform : Platform {
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
     }
+
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
