@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +64,14 @@ fun BillerScreen(
     viewModel: BillerViewModel = viewModel { BillerViewModel() }
 ) {
     val uiState = viewModel.billerScreenUiState.collectAsState()
+
+    SideEffect {
+        println("BillerScreen recomposed")
+    }
+
+    LaunchedEffect(true) {
+        viewModel.syncData()
+    }
 
     when (uiState.value) {
         is BillerScreenUiState.Loading -> {
@@ -198,6 +208,10 @@ class BillerViewModel : ViewModel() {
                 filter { it.name.contains(searchText, ignoreCase = true) }
             )
         }
+    }
+
+    suspend fun syncData() {
+        getPlatform().getDatabase().billerDao().insert(data.Biller(name = "BESCOM"))
     }
 
 }

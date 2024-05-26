@@ -1,5 +1,6 @@
 package org.simplifiers.kmm
 
+import AndroidPlatform
 import App
 import android.content.res.Configuration
 import android.os.Bundle
@@ -11,6 +12,8 @@ import androidx.compose.ui.tooling.preview.Preview
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        AndroidPlatform.applicationContext = applicationContext
 
         setContent {
             App()
